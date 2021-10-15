@@ -1,0 +1,9 @@
+/target
+/.idea
+*iml
+/src/main/webapp/static
+*.json
+*.ico
+index.html
+*.png
+robots.txt
