@@ -83,7 +83,7 @@ const Table = () => {
 
   const getLabsData = async () => {
     const params = constructQueryParams(filterFields, activeSizePerPage, activePage, activeSortField);
-    const host_path = !lessMaximalPointFlag ? host : `${host}/less_maximum_point`
+    const host_path = !lessMaximalPointFlag ? host : `${host}/less_maximum_point/${filterFields.maximumPoint}`
     return axios.get(
       host_path,
       { params }).then(data => {

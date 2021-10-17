@@ -1,17 +1,13 @@
 package ru.itmo.servlet;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import ru.itmo.service.LabWorksService;
 import ru.itmo.utils.LabWorkParams;
 
-import java.io.IOException;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 
-@WebServlet("/labworks/*")
-public class LabWorkServlet extends HttpServlet {
+@Path("/labworks")
+public class LabWorkServlet {
 
     private static final String NAME_PARAM = "name";
     private static final String CREATION_DATE_PARAM = "creationDate";
@@ -35,125 +31,90 @@ public class LabWorkServlet extends HttpServlet {
     private static final String LOCATION_NAME_PARAM = "locationName";
 
     private static final String MINIMAL_NAME_FLAG = "min_name";
-    private static final String COUNT_PERSONAL_QUALITIES_MAXIMUM_FLAG = "count_personal_maximum";
-    private static final String LESS_MAXIMUM_POINT_FLAG = "less_maximum_point";
+    private static final String COUNT_PERSONAL_QUALITIES_MAXIMUM_FLAG = "count_personal_maximum/{personal_qualities_maximum}";
+    private static final String LESS_MAXIMUM_POINT_FLAG = "less_maximum_point/{maximum_point}";
 
     private LabWorksService service;
 
-    private LabWorkParams getLabWorksParams(HttpServletRequest request){
+    @Produces(MediaType.APPLICATION_XML)
+    @Consumes(MediaType.APPLICATION_XML)
+    private LabWorkParams getLabWorksParams(MultivaluedMap<String, String> map){
         LabWorkParams params = new LabWorkParams();
         params.setLabWorkParams(
-                request.getParameter(NAME_PARAM),
-                request.getParameter(CREATION_DATE_PARAM),
-                request.getParameter(MINIMAL_POINT_PARAM),
-                request.getParameter(MAXIMAL_POINT_PARAM),
-                request.getParameter(PERSONAL_QUALITIES_MAXIMUM_PARAM),
-                request.getParameter(DIFFICULTY_PARAM),
-                request.getParameter(COORDINATES_X_PARAM),
-                request.getParameter(COORDINATES_Y_PARAM),
-                request.getParameter(PERSON_NAME_PARAM),
-                request.getParameter(PERSON_WEIGHT_PARAM),
-                request.getParameter(LOCATION_X_PARAM),
-                request.getParameter(LOCATION_Y_PARAM),
-                request.getParameter(LOCATION_Z_PARAM),
-                request.getParameter(LOCATION_NAME_PARAM),
-                request.getParameter(PAGE_IDX_PARAM),
-                request.getParameter(PAGE_SIZE_PARAM),
-                request.getParameter(SORT_FIELD_PARAM)
+                map.getFirst(NAME_PARAM),
+                map.getFirst(CREATION_DATE_PARAM),
+                map.getFirst(MINIMAL_POINT_PARAM),
+                map.getFirst(MAXIMAL_POINT_PARAM),
+                map.getFirst(PERSONAL_QUALITIES_MAXIMUM_PARAM),
+                map.getFirst(DIFFICULTY_PARAM),
+                map.getFirst(COORDINATES_X_PARAM),
+                map.getFirst(COORDINATES_Y_PARAM),
+                map.getFirst(PERSON_NAME_PARAM),
+                map.getFirst(PERSON_WEIGHT_PARAM),
+                map.getFirst(LOCATION_X_PARAM),
+                map.getFirst(LOCATION_Y_PARAM),
+                map.getFirst(LOCATION_Z_PARAM),
+                map.getFirst(LOCATION_NAME_PARAM),
+                map.getFirst(PAGE_IDX_PARAM),
+                map.getFirst(PAGE_SIZE_PARAM),
+                map.getFirst(SORT_FIELD_PARAM)
         );
         return params;
     }
 
-    @Override
-    public void init() throws ServletException {
-        super.init();
+    public LabWorkServlet() {
         service = new LabWorksService();
     }
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/xml");
-        String pathInfo = req.getPathInfo();
-        if (pathInfo == null){
-            LabWorkParams filterParams = getLabWorksParams(req);
-            service.getAllLabWorks(filterParams, resp);
-        } else {
-            String[] parts = pathInfo.split("/");
-            if (parts.length > 1) {
-                switch (parts[1]) {
-                    case LESS_MAXIMUM_POINT_FLAG:
-                        LabWorkParams filterParams = getLabWorksParams(req);
-                        filterParams.setLessMaximalPointFlag(true);
-                        service.getAllLabWorks(filterParams, resp);
-                        break;
-                    case MINIMAL_NAME_FLAG:
-                        service.getMinName(resp);
-                        break;
-                    case COUNT_PERSONAL_QUALITIES_MAXIMUM_FLAG:
-                        service.countPersonalQualitiesMaximum(parts[2], resp);
-                        break;
-                    default:
-                        service.getLabWork(parts[1], resp);
-                        break;
-                }
-            } else {
-                service.getInfo(resp, 400, "Unknown query");
-            }
-        }
+    @GET
+    public Response getLabWorks(@Context UriInfo ui) {
+        MultivaluedMap<String, String> map = ui.getQueryParameters();
+        LabWorkParams filterParams = getLabWorksParams(map);
+        return service.getAllLabWorks(filterParams);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/xml");
-        service.createLabWork(req, resp);
+    @GET
+    @Path("/{id}")
+    public Response getLabWork(@PathParam("id") String id){
+        return service.getLabWork(id);
     }
 
-    @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/ml");
-        String pathInfo = req.getPathInfo();
-        if (pathInfo != null) {
-            String[] parts = pathInfo.split("/");
-            if (parts.length > 1) {
-                service.updateLabWork(parts[1], req, resp);
-            } else {
-                service.getInfo(resp, 400, "Unknown query");
-            }
-        } else {
-            service.getInfo(resp, 400, "Unknown query");
-        }
+    @GET
+    @Path(LESS_MAXIMUM_POINT_FLAG)
+    public Response getLessMaximumPointFlag(@Context UriInfo ui, @PathParam("maximum_point") String maximum_point){
+        MultivaluedMap<String, String> map = ui.getQueryParameters();
+        LabWorkParams filterParams = getLabWorksParams(map);
+        filterParams.setLessMaximalPointFlag(true);
+        filterParams.setMaximumPoint(maximum_point);
+        return service.getAllLabWorks(filterParams);
     }
 
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/xml");
-        String pathInfo = req.getPathInfo();
-        if (pathInfo != null) {
-            String[] parts = pathInfo.split("/");
-            if (parts.length > 1) {
-                service.deleteLabWork(parts[1], resp);
-            } else {
-                service.getInfo(resp, 400, "Unknown query");
-            }
-        } else {
-            service.getInfo(resp, 400, "Unknown query");
-        }
+    @GET
+    @Path(MINIMAL_NAME_FLAG)
+    public Response getMinimalNameLabWork(){
+        return service.getMinName();
     }
 
-    @Override
-    protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doHead(req, resp);
+    @GET
+    @Path(COUNT_PERSONAL_QUALITIES_MAXIMUM_FLAG)
+    public Response countPersonalQualitiesMaximumLabWorks(@PathParam("personal_qualities_maximum") String personal_qualities_maximum){
+        return service.countPersonalQualitiesMaximum(personal_qualities_maximum);
     }
 
-    @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/xml");
-        resp.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-        resp.setStatus(200);
+    @POST
+    public Response createLabWork(String labWork){
+        return service.createLabWork(labWork);
     }
 
-    @Override
-    protected void doTrace(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doTrace(req, resp);
+    @PUT
+    @Path("/{id}")
+    public Response changeLabWork(@PathParam("id") String id, String labWork){
+        return service.updateLabWork(id, labWork);
+    }
+
+    @DELETE
+    @Path("/{id}")
+    public Response deleteLabWork(@PathParam("id") String id){
+        return service.deleteLabWork(id);
     }
 }

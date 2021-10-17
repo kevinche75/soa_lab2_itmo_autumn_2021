@@ -1,6 +1,5 @@
 package ru.itmo.converter;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import ru.itmo.entity.Difficulty;
 import ru.itmo.validator.ValidatorResult;
@@ -218,10 +217,6 @@ public class FieldConverter {
 
     public static String stringLikeConvert(String string){
         return string + "%";
-    }
-
-    public static String bodyToStringConvert(HttpServletRequest request) throws IOException {
-        return IOUtils.toString(request.getReader());
     }
 
     public static String removePrefixFieldConvert(String field, String prefix){

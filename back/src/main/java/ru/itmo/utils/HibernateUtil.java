@@ -6,8 +6,6 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 import ru.itmo.entity.*;
 
-import java.util.Properties;
-
 public class HibernateUtil {
 
     private static final SessionFactory sessionFactory = buildSessionFactory();

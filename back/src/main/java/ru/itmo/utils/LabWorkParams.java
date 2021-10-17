@@ -1,7 +1,6 @@
 package ru.itmo.utils;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.itmo.converter.FieldConverter;
 import ru.itmo.entity.*;
@@ -21,6 +20,7 @@ public class LabWorkParams {
     String name;
     LocalDateTime creationDate;
     Float minimalPoint;
+    @Setter
     Float maximumPoint;
     Long personalQualitiesMaximum;
     Difficulty difficulty;
@@ -82,6 +82,10 @@ public class LabWorkParams {
         this.pageIdx = Math.max(FieldConverter.intConvert(pageIdx, 1), 1);
         this.pageSize = Math.max(FieldConverter.intConvert(pageSize, 10), 1);
         this.sortField = FieldConverter.sortFieldFilterConvert(sortField, LabWork.getAllFields(), validatorResult);
+    }
+
+    public void setMaximumPoint(String maximumPoint) {
+        this.maximumPoint = FieldConverter.floatFilterConvert(maximumPoint, "LabWork MaximalPoint", validatorResult);;
     }
 
     public List<Predicate> getPredicates(

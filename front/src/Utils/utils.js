@@ -25,7 +25,7 @@ export const sizePerPageRenderer = ({
   </div>
 );
 
-export const host = "labworks"
+export const host = "api/labworks"
 
 export const options = {
   'VERY_EASY': 'VERY_EASY',

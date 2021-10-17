@@ -7,3 +7,4 @@
 index.html
 *.png
 robots.txt
+src/main/resources/hibernate.properties
