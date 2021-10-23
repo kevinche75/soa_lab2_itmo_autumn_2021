@@ -3,13 +3,29 @@ import Header from "./Components/Header";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
 import 'react-bootstrap-table2-paginator/dist/react-bootstrap-table2-paginator.min.css';
-import Table from "./Components/Table";
+import LabWorkTable from "./Components/LabWorkTable";
+import DisciplineTable from "./Components/DisciplineTable";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 function App() {
   return (
     <div className="App">
-      <Header/>
-      <Table/>
+      <Router>
+        <Header />
+        <Switch>
+          <Route path="/discipline">
+            <DisciplineTable />
+          </Route>
+          <Route path="/">
+            <LabWorkTable />
+          </Route>
+        </Switch>
+      </Router>
     </div>
   );
 }

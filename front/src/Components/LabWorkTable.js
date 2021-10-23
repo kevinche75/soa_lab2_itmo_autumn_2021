@@ -6,14 +6,14 @@ import filterFactory, { textFilter, numberFilter, selectFilter, dateFilter, Comp
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import axios from 'axios';
 import { Builder, parseString } from 'xml2js';
-import AddNewForm from './AddNewForm';
+import AddNewLab from './AddNewLab';
 import moment from 'moment';
 import { constructQueryParams, constructSortField, constructUpdateObject, sizePerPageRenderer, options, defaultSorted, host } from '../Utils/utils';
 import SpecialFuncs from './SpecialFuncs';
 import { InfoModal } from './InfoModal';
 import LabModal from './LabModal';
 
-const Table = () => {
+const LabWorkTable = () => {
 
   const xmlBuilder = new Builder();
   const [labs, setLabs] = useState([]);
@@ -65,26 +65,31 @@ const Table = () => {
   });
   const [lessMaximalPointFlag, setlessMaximalPointFlag] = useState(false)
 
-  const catchInfo = async (data) => {
+  const catchInfo = (data) => {
     parseString(data, { explicitArray: false, ignoreAttrs: true }, function (err, result) {
-      setMessage(result.serverResponse.message)
+      if (result && result.serverResponse && result.serverResponse.message) {
+        setMessage(result.serverResponse.message)
+      } else {
+        setMessage("Unexpected error")
+      }
       setShowError(true)
     })
   }
 
-  useEffect(() => {
-    console.log(labs)
-  }, [labs])
+  const catchError = () => {
+    setMessage("Unexpected error")
+    setShowError(true)
+  }
 
   const getLabsData = async () => {
     const params = constructQueryParams(filterFields, activeSizePerPage, activePage, activeSortField);
-    const host_path = !lessMaximalPointFlag ? host : `${host}/less_maximum_point`
+    const host_path = !lessMaximalPointFlag ? host : `${host}/less_maximum_point/${filterFields.maximumPoint}`
     return axios.get(
       host_path,
       { params }).then(data => {
         parseString(data.data, { explicitArray: false, ignoreAttrs: true }, function (err, result) {
-          setTotalSize(result.labworks_result.totalLabWorks)
-          switch (result.labworks_result.totalLabWorks) {
+          setTotalSize(parseInt(result.labworks_result.totalLabWorks))
+          switch (parseInt(result.labworks_result.totalLabWorks)) {
             case 0:
               setLabs([]);
               break;
@@ -97,32 +102,68 @@ const Table = () => {
           }
         })
       })
-      .catch(data => {
-        catchInfo(data.response.data)
-      });
+      .catch(function (error) {
+        if (error.response) {
+          // Request made and server responded
+          if (error.response.data)
+            catchInfo(error.response.data)
+          else
+            catchError()
+        } else if (error.request) {
+          // The request was made but no response was received
+          catchError()
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          catchError()
+        }
+      })
   }
 
   const createNewLab = async (object) => {
     let xmlObject = xmlBuilder.buildObject(object);
     axios.post(
-      host, xmlObject
+      host, xmlObject, {headers: {'Content-Type': 'application/xml'}}
     ).then(data => {
       getLabsData();
-    }).catch(data => {
-      catchInfo(data.response.data)
-    });
+    }).catch(function (error) {
+      if (error.response) {
+        // Request made and server responded
+        if (error.response.data)
+          catchInfo(error.response.data)
+        else
+          catchError()
+      } else if (error.request) {
+        // The request was made but no response was received
+        catchError()
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        catchError()
+      }
+    })
   }
 
   const updateNewLab = async (object) => {
     let xmlObject = xmlBuilder.buildObject(object);
     axios.put(
-      host, xmlObject
+      `${host}/${object.labWork.id}`, xmlObject, {headers: {'Content-Type': 'application/xml'}}
     ).then(data => {
       getLabsData();
     })
-      .catch(data => {
-        catchInfo(data.response.data)
-      });
+      .catch(function (error) {
+        if (error.response) {
+          // Request made and server responded
+          if (error.response.data)
+            catchInfo(error.response.data)
+          else
+            catchError()
+        } else if (error.request) {
+          // The request was made but no response was received
+          catchError()
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          catchError()
+        }
+      })
   }
 
   const handleDelete = (id) => {
@@ -132,8 +173,20 @@ const Table = () => {
       console.log(data);
       getLabsData();
     })
-      .catch(data => {
-        catchInfo(data.response.data)
+      .catch(function (error) {
+        if (error.response) {
+          // Request made and server responded
+          if (error.response.data)
+            catchInfo(error.response.data)
+          else
+            catchError()
+        } else if (error.request) {
+          // The request was made but no response was received
+          catchError()
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          catchError()
+        }
       })
   }
 
@@ -150,8 +203,20 @@ const Table = () => {
           setShowLab(true)
         })
       })
-      .catch(data => {
-        catchInfo(data.response.data)
+      .catch(function (error) {
+        if (error.response) {
+          // Request made and server responded
+          if (error.response.data)
+            catchInfo(error.response.data)
+          else
+            catchError()
+        } else if (error.request) {
+          // The request was made but no response was received
+          catchError()
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          catchError()
+        }
       })
   }
 
@@ -170,8 +235,20 @@ const Table = () => {
           console.log(result)
         })
       })
-      .catch(data => {
-        catchInfo(data.response.data)
+      .catch(function (error) {
+        if (error.response) {
+          // Request made and server responded
+          if (error.response.data)
+            catchInfo(error.response.data)
+          else
+            catchError()
+        } else if (error.request) {
+          // The request was made but no response was received
+          catchError()
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          catchError()
+        }
       })
   }
 
@@ -182,8 +259,20 @@ const Table = () => {
       .then(data => {
         catchInfo(data.data)
       })
-      .catch(data => {
-        catchInfo(data.response.data)
+      .catch(function (error) {
+        if (error.response) {
+          // Request made and server responded
+          if (error.response.data)
+            catchInfo(error.response.data)
+          else
+            catchError()
+        } else if (error.request) {
+          // The request was made but no response was received
+          catchError()
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          catchError()
+        }
       })
   }
 
@@ -226,7 +315,7 @@ const Table = () => {
     for (const dataField in filters) {
       const { filterVal, filterType, comparator } = filters[dataField];
       if (filterType === "NUMBER") {
-        if (dataField === "maximumPoint" && filterVal.comparator === Comparator.LT){
+        if (dataField === "maximumPoint" && filterVal.comparator === Comparator.LT) {
           setlessMaximalPointFlag(true)
         }
         newFilterFields[dataField] = filterVal.number;
@@ -355,6 +444,11 @@ const Table = () => {
       }), sort: true, sortCaret: sortCaretSpan
     },
     { dataField: "author.location.name", text: "locationName", filter: textFilter(), sort: true, sortCaret: sortCaretSpan },
+    { dataField: "discipline.name", text: "discipline",
+      editable: (cell, row, rowIndex, colIndex) => {
+        return false;
+      }
+    },
     {
       dataField: "remove",
       text: "Delete",
@@ -374,8 +468,8 @@ const Table = () => {
   return (
     <div className="mt-5">
       <br />
-      <SpecialFuncs handleFilter={handleFilter} searchLab={searchLab} getMinName={serchLabWithMinName} countPQM={countPQM}/>
-      <AddNewForm createNewLab={createNewLab} />
+      <SpecialFuncs handleFilter={handleFilter} searchLab={searchLab} getMinName={serchLabWithMinName} countPQM={countPQM} />
+      <AddNewLab createNewLab={createNewLab} catchError={catchError} catchInfo={catchInfo}/>
       <InfoModal setShow={setShowError} show={showError} message={message} />
       <LabModal setShow={setShowLab} show={showLab} labWork={lab} />
       <div style={{ overFlowX: 'auto' }} className="m-3">
@@ -383,7 +477,7 @@ const Table = () => {
           remote
           classes="w-auto"
           keyField="id"
-          data={[]}
+          data={labs}
           columns={columns}
           cellEdit={cellEditFactory({ mode: 'dbclick' })}
           rowStyle={{ whiteSpace: 'nowrap', wordWrap: 'break-word' }}
@@ -397,4 +491,4 @@ const Table = () => {
   )
 }
 
-export default Table
+export default LabWorkTable

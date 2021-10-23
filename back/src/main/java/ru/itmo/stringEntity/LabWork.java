@@ -3,6 +3,9 @@ package ru.itmo.stringEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import ru.itmo.converter.FieldConverter;
+import ru.itmo.entity.Difficulty;
+import ru.itmo.utils.LabWorkParams;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -39,4 +42,22 @@ public class LabWork {
 
     @XmlElement
     private Person author; //Поле не может быть null
+
+    @XmlElement
+    private Discipline discipline;
+
+    public ru.itmo.entity.LabWork toRealLabWork(){
+        return new ru.itmo.entity.LabWork(
+                FieldConverter.longConvert(id),
+                name,
+                coordinates.toRealCoordinates(),
+                FieldConverter.localDateTimeConvert(creationDate, LabWorkParams.DATE_PATTERN),
+                FieldConverter.floatConvert(minimalPoint),
+                FieldConverter.floatConvert(maximumPoint),
+                FieldConverter.longConvert(personalQualitiesMaximum),
+                Difficulty.valueOf(difficulty),
+                author.toRealPerson(),
+                discipline.toRealDiscipline()
+        );
+    }
 }

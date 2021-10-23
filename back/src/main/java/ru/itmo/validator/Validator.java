@@ -2,6 +2,8 @@ package ru.itmo.validator;
 
 import lombok.Getter;
 import ru.itmo.converter.FieldConverter;
+import ru.itmo.stringEntity.Discipline;
+import ru.itmo.stringEntity.LabWork;
 import ru.itmo.utils.LabWorkParams;
 
 @Getter
@@ -52,11 +54,25 @@ public class Validator {
         return validatorResult;
     }
 
+    public static ValidatorResult validateDiscipline(Discipline strDiscipline){
+        ValidatorResult validatorResult = new ValidatorResult();
+        FieldConverter.stringConvert(strDiscipline.getName(), "Discipline Name", validatorResult);
+        return validatorResult;
+    }
+
+    public static void validateDiscipline(LabWork stringLabWork, ValidatorResult validatorResult){
+        if (stringLabWork.getDiscipline() != null){
+            FieldConverter.longConvert(stringLabWork.getDiscipline().getId(), "Discipline Id", validatorResult);
+        } else {
+            validatorResult.addMessage("Discipline fields are not specified");
+        }
+    }
+
     public static void validateCreationDate(ru.itmo.stringEntity.LabWork stringLabWork, ValidatorResult validatorResult){
         FieldConverter.localDateTimeConvert(stringLabWork.getCreationDate(), "LabWork CreationDate", LabWorkParams.DATE_PATTERN, validatorResult);
     }
 
-    public static void validateId(ru.itmo.stringEntity.LabWork stringLabWork, ValidatorResult validatorResult){
+    public static void validateLabWorkId(ru.itmo.stringEntity.LabWork stringLabWork, ValidatorResult validatorResult){
         Long labWorkId = FieldConverter.longConvert(stringLabWork.getId(), "LabWork Id", validatorResult);
         if(labWorkId != null && labWorkId <= 0){
             validatorResult.addMessage("LabWork id must be more than 0");

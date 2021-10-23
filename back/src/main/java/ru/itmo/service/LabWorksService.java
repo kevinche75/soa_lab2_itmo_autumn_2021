@@ -1,8 +1,10 @@
 package ru.itmo.service;
 
+import ru.itmo.DAO.DisciplineDAO;
 import ru.itmo.DAO.LabWorksDAO;
 import ru.itmo.converter.FieldConverter;
 import ru.itmo.converter.XMLConverter;
+import ru.itmo.entity.Discipline;
 import ru.itmo.entity.LabWork;
 import ru.itmo.utils.LabWorkParams;
 import ru.itmo.utils.LabWorksResult;
@@ -11,17 +13,18 @@ import ru.itmo.validator.Validator;
 import ru.itmo.validator.ValidatorResult;
 
 import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
 import java.util.Optional;
 
 public class LabWorksService {
 
     private XMLConverter xmlConverter;
     private LabWorksDAO dao;
+    private DisciplineDAO disciplineDAO;
 
     public LabWorksService() {
         xmlConverter = new XMLConverter();
         dao = new LabWorksDAO();
+        disciplineDAO = new DisciplineDAO();
     }
 
     public Response getInfo(int code, String message) {
@@ -35,7 +38,7 @@ public class LabWorksService {
         }
         try {
             LabWorksResult labWorksResult = dao.getAllLabWorks(params);
-            return Response.ok(xmlConverter.toStr(labWorksResult)).build();
+            return Response.ok(xmlConverter.toStr(labWorksResult)).header("Access-Control-Allow-Origin", "*").build();
         } catch (Exception e) {
             return getInfo(500, "Server error, try again");
         }
@@ -50,7 +53,7 @@ public class LabWorksService {
         try {
             Optional<LabWork> labWork = dao.getLabWork(id);
             if (labWork.isPresent()) {
-                return Response.ok(xmlConverter.toStr(labWork)).build();
+                return Response.ok(xmlConverter.toStr(labWork.get().toUnrealLabWork())).build();
             } else {
                 return getInfo(404, "No labWork with such id: " + id);
             }
@@ -65,7 +68,7 @@ public class LabWorksService {
             if (lab == null) {
                 return getInfo( 404, "No labs");
             }
-            return Response.ok(xmlConverter.toStr(xmlConverter.toStr(lab))).build();
+            return Response.ok(xmlConverter.toStr(xmlConverter.toStr(lab.toUnrealLabWork()))).build();
         } catch (Exception e) {
             return getInfo( 500, "Server error, try again");
         }
@@ -90,34 +93,38 @@ public class LabWorksService {
     }
 
 
-    public Response createLabWork(String xmlStr) {
+    public Response createLabWork(ru.itmo.stringEntity.LabWork stringLabWork) {
         try {
-            ru.itmo.stringEntity.LabWork stringLabWork = xmlConverter.fromStr(xmlStr, ru.itmo.stringEntity.LabWork.class);
             ValidatorResult validatorResult = Validator.validateLabWork(stringLabWork);
+            Validator.validateDiscipline(stringLabWork, validatorResult);
             if (!validatorResult.isStatus()) {
                 return getInfo(400, validatorResult.getMessage());
             }
-            LabWork labWork = xmlConverter.fromStr(xmlStr, LabWork.class);
-            Long id = dao.createLabWork(labWork);
+            LabWork labWork = stringLabWork.toRealLabWork();
+            labWork.setCreationDate(java.time.LocalDateTime.now());
+            Optional<Discipline> optionalDiscipline = disciplineDAO.getDiscipline(labWork.getDiscipline().getId());
+            if (optionalDiscipline.isPresent()){
+                disciplineDAO.addLabWork(labWork.getDiscipline().getId(), labWork);
+            } else {
+                return getInfo(400, "No discipline with such id");
+            }
+
             return Response.ok().build();
-        } catch (JAXBException e) {
-            return getInfo(400, "Unknown data structure");
         } catch (Exception e) {
             return getInfo(500, "Server error, try again");
         }
     }
 
-    public Response updateLabWork(String str_id, String xmlStr) {
+    public Response updateLabWork(String str_id, ru.itmo.stringEntity.LabWork stringLabWorkUpdate) {
         try {
-            ru.itmo.stringEntity.LabWork stringLabWorkUpdate = xmlConverter.fromStr(xmlStr, ru.itmo.stringEntity.LabWork.class);
             ValidatorResult validatorResult = Validator.validateLabWork(stringLabWorkUpdate);
             Long id = FieldConverter.longConvert(str_id, "Delete id", validatorResult);
             Validator.validateCreationDate(stringLabWorkUpdate, validatorResult);
-            Validator.validateId(stringLabWorkUpdate, validatorResult);
+            Validator.validateLabWorkId(stringLabWorkUpdate, validatorResult);
             if (!validatorResult.isStatus()) {
                 return getInfo(400, validatorResult.getMessage());
             }
-            LabWork labWorkUpdate = xmlConverter.fromStr(xmlStr, LabWork.class);
+            LabWork labWorkUpdate = stringLabWorkUpdate.toRealLabWork();
             Optional<LabWork> lab = dao.getLabWork(id);
             if (lab.isPresent()) {
                 LabWork labWorkPresent = lab.get();
@@ -126,8 +133,6 @@ public class LabWorksService {
                 return Response.ok().build();
             } else
                 return getInfo(404, "No LabWork with such id: " + labWorkUpdate.getId());
-        } catch (JAXBException e) {
-            return getInfo(400, "Can't understand data structure");
         } catch (Exception e) {
             return getInfo(500, "Server error, try again");
         }

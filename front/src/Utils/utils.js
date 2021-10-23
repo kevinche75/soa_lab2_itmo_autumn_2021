@@ -26,6 +26,7 @@ export const sizePerPageRenderer = ({
 );
 
 export const host = "api/labworks"
+export const discipline_uri = "api/disciplines"
 
 export const options = {
   'VERY_EASY': 'VERY_EASY',
@@ -40,7 +41,7 @@ export const defaultSorted = [{
   order: 'desc'
 }];
 
-export function constructObject(params){
+export function constructObjectLab(params){
     return {
         labWork: {
             name: params.name,
@@ -61,9 +62,20 @@ export function constructObject(params){
                 z: params.locationZ,
                 name: params.locationName
               }
-            }
+            },
+          discipline: {
+              id: params.discipline
           }
+        }
     }
+}
+
+export function constructObjectDiscipline(params){
+  return {
+    discipline: {
+      name: params.name
+    }
+  }
 }
 
 export function constructQueryParams(filters, sizePerPage, page, sortField){

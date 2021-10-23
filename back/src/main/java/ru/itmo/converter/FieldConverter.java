@@ -211,6 +211,47 @@ public class FieldConverter {
         }
     }
 
+    public static Float floatConvert(String number){
+        try {
+            return Float.parseFloat(number);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public static Long longConvert(String number){
+        try {
+            return Long.parseLong(number);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public static Difficulty difficultyConvert(String difficulty){
+        try {
+            return Difficulty.valueOf(difficulty);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public static Integer intConvert(String number){
+        try {
+            return Integer.parseInt(number);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+
+    public static Double doubleConvert(String number){
+        try {
+            return Double.parseDouble(number);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
     public static String addPrefixFieldConvert(String prefix, String field){
         return prefix + field.substring(0, 1).toUpperCase() + field.substring(1);
     }

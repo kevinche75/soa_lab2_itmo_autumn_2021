@@ -1,12 +1,15 @@
 package ru.itmo.servlet;
 
 import ru.itmo.service.LabWorksService;
+import ru.itmo.stringEntity.LabWork;
 import ru.itmo.utils.LabWorkParams;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 @Path("/labworks")
+@Produces(MediaType.APPLICATION_XML)
+@Consumes(MediaType.APPLICATION_XML)
 public class LabWorkServlet {
 
     private static final String NAME_PARAM = "name";
@@ -36,8 +39,6 @@ public class LabWorkServlet {
 
     private LabWorksService service;
 
-    @Produces(MediaType.APPLICATION_XML)
-    @Consumes(MediaType.APPLICATION_XML)
     private LabWorkParams getLabWorksParams(MultivaluedMap<String, String> map){
         LabWorkParams params = new LabWorkParams();
         params.setLabWorkParams(
@@ -102,13 +103,13 @@ public class LabWorkServlet {
     }
 
     @POST
-    public Response createLabWork(String labWork){
+    public Response createLabWork(LabWork labWork){
         return service.createLabWork(labWork);
     }
 
     @PUT
     @Path("/{id}")
-    public Response changeLabWork(@PathParam("id") String id, String labWork){
+    public Response changeLabWork(@PathParam("id") String id, LabWork labWork){
         return service.updateLabWork(id, labWork);
     }
 

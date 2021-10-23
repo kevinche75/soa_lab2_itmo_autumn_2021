@@ -1,19 +1,64 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Button, Modal, Form } from 'react-bootstrap';
 import { Button as FloatButton, Container } from 'react-floating-action-button'
-import { constructObject } from '../Utils/utils';
+import {constructObjectLab, discipline_uri} from '../Utils/utils';
+import axios from "axios";
+import {parseString} from "xml2js";
 
 
-function AddNewForm(props) {
+function AddNewLab(props) {
 
     const [show, setShow] = useState(false);
+    const [disciplines, setDisciplines] = useState([]);
+
+    const getDisciplineData = async () => {
+        axios.get(
+            discipline_uri
+        ).then (data => {
+            parseString(data.data, { explicitArray: false, ignoreAttrs: true }, function (err, result) {
+                switch (parseInt(result.disciplines_result.totalDisciplines)) {
+                    case 0:
+                        setDisciplines([]);
+                        break;
+                    case 1:
+                        setDisciplines([result.disciplines_result.disciplines.discipline]);
+                        break;
+                    default:
+                        setDisciplines(result.disciplines_result.disciplines.discipline)
+                        break;
+                }
+            })
+        })
+            .catch(function (error) {
+                handleClose()
+                if (error.response) {
+                    // Request made and server responded
+                    if (error.response.data)
+                        props.catchInfo(error.response.data)
+                    else
+                        props.catchError()
+                } else if (error.request) {
+                    // The request was made but no response was received
+                    props.catchError()
+                } else {
+                    // Something happened in setting up the request that triggered an Error
+                    props.catchError()
+                }
+            })
+    }
+
+    useEffect(() => {
+        if (show)
+            getDisciplineData();
+    }, [show])
+
     const handleClose = () => {
         flashInputFields();
         setShow(false);
     };
     const handleShow = () => setShow(true);
     const handleSubmit = () => {
-        props.createNewLab(constructObject(inputFields))
+        props.createNewLab(constructObjectLab(inputFields))
         handleClose()
     }
 
@@ -30,7 +75,8 @@ function AddNewForm(props) {
         locationX: null,
         locationY: null,
         locationZ: null,
-        locationName: null
+        locationName: null,
+        discipline: -1
     });
 
     const setValue = (e) => {
@@ -54,7 +100,8 @@ function AddNewForm(props) {
             locationX: null,
             locationY: null,
             locationZ: null,
-            locationName: null
+            locationName: null,
+            discipline: -1
         })
     };
 
@@ -216,6 +263,21 @@ function AddNewForm(props) {
                             />
                         </Form.Group>
 
+                        <hr/>
+                        <h2> Discipline </h2>
+                        <Form.Group className="mb-3" controlId="form.Discipline.Name">
+                            <Form.Control
+                                name="discipline"
+                                as="select"
+                                onChange={setValue}
+                            >
+                                <option value={-1}>Choose discipline...</option>
+                                {disciplines.map(opt => (
+                                    <option value={opt.id}>{opt.name}</option>
+                                ))}
+                            </Form.Control>
+                        </Form.Group>
+
                         <Button className="m-1" variant="secondary" onClick={handleClose}>
                             Close
                         </Button>
@@ -239,4 +301,4 @@ function AddNewForm(props) {
     )
 }
 
-export default AddNewForm
+export default AddNewLab

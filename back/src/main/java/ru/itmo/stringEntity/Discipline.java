@@ -8,26 +8,23 @@ import ru.itmo.converter.FieldConverter;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @XmlRootElement
-public class Coordinates {
+public class Discipline {
 
     @XmlElement
     private String id;
 
     @XmlElement
-    private String x; //Поле не может быть null
+    private String name;
 
-    @XmlElement
-    private String y;
-
-    public ru.itmo.entity.Coordinates toRealCoordinates(){
-        return new ru.itmo.entity.Coordinates(
+    public ru.itmo.entity.Discipline toRealDiscipline(){
+        return new ru.itmo.entity.Discipline(
                 FieldConverter.longConvert(id),
-                FieldConverter.intConvert(x),
-                FieldConverter.doubleConvert(y)
+                name,
+                null
         );
     }
 }
