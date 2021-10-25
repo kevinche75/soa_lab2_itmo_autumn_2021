@@ -1,16 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import BootstrapTable from 'react-bootstrap-table-next';
-import { Type } from 'react-bootstrap-table2-editor';
-import cellEditFactory from 'react-bootstrap-table2-editor';
-import filterFactory, { textFilter, numberFilter, selectFilter, dateFilter, Comparator } from 'react-bootstrap-table2-filter';
+import cellEditFactory, {Type} from 'react-bootstrap-table2-editor';
+import filterFactory, {
+  Comparator,
+  dateFilter,
+  numberFilter,
+  selectFilter,
+  textFilter
+} from 'react-bootstrap-table2-filter';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import axios from 'axios';
-import { Builder, parseString } from 'xml2js';
+import {Builder, parseString} from 'xml2js';
 import AddNewLab from './AddNewLab';
 import moment from 'moment';
-import { constructQueryParams, constructSortField, constructUpdateObject, sizePerPageRenderer, options, defaultSorted, host } from '../Utils/utils';
+import {
+  constructQueryParams,
+  constructSortField,
+  constructUpdateObject,
+  defaultSorted,
+  host,
+  options,
+  sizePerPageRenderer
+} from '../Utils/utils';
 import SpecialFuncs from './SpecialFuncs';
-import { InfoModal } from './InfoModal';
+import {InfoModal} from './InfoModal';
 import LabModal from './LabModal';
 
 const LabWorkTable = () => {
@@ -444,11 +457,6 @@ const LabWorkTable = () => {
       }), sort: true, sortCaret: sortCaretSpan
     },
     { dataField: "author.location.name", text: "locationName", filter: textFilter(), sort: true, sortCaret: sortCaretSpan },
-    { dataField: "discipline.name", text: "discipline",
-      editable: (cell, row, rowIndex, colIndex) => {
-        return false;
-      }
-    },
     {
       dataField: "remove",
       text: "Delete",

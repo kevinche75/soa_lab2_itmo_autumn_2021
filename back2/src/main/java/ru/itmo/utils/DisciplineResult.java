@@ -1,6 +1,5 @@
 package ru.itmo.utils;
 
-import lombok.NoArgsConstructor;
 import ru.itmo.stringEntity.Discipline;
 
 import javax.xml.bind.annotation.XmlElement;

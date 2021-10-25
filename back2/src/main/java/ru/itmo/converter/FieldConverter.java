@@ -1,10 +1,8 @@
 package ru.itmo.converter;
 
-import org.apache.commons.io.IOUtils;
 import ru.itmo.entity.Difficulty;
 import ru.itmo.validator.ValidatorResult;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -207,6 +205,47 @@ public class FieldConverter {
             return sortField;
         } else {
             validatorResult.addMessage("Unknown sortField: " + sortField);
+            return null;
+        }
+    }
+
+    public static Float floatConvert(String number){
+        try {
+            return Float.parseFloat(number);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public static Long longConvert(String number){
+        try {
+            return Long.parseLong(number);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public static Difficulty difficultyConvert(String difficulty){
+        try {
+            return Difficulty.valueOf(difficulty);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public static Integer intConvert(String number){
+        try {
+            return Integer.parseInt(number);
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+
+    public static Double doubleConvert(String number){
+        try {
+            return Double.parseDouble(number);
+        } catch (Exception e){
             return null;
         }
     }

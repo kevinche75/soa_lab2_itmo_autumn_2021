@@ -3,7 +3,10 @@ package ru.itmo.DAO;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import ru.itmo.converter.FieldConverter;
-import ru.itmo.entity.*;
+import ru.itmo.entity.Coordinates;
+import ru.itmo.entity.LabWork;
+import ru.itmo.entity.Location;
+import ru.itmo.entity.Person;
 import ru.itmo.utils.HibernateUtil;
 import ru.itmo.utils.LabWorkParams;
 import ru.itmo.utils.LabWorksResult;
@@ -122,7 +125,6 @@ public class LabWorksDAO {
                 validatorResult.addMessage("No LabWork with such Id: " + id);
                 validatorResult.setCode(404);
             }
-
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {

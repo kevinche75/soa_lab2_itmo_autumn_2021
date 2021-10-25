@@ -2,8 +2,7 @@ import React, {useEffect, useState} from 'react';
 import BootstrapTable from 'react-bootstrap-table-next';
 import axios from 'axios';
 import {Builder, parseString} from 'xml2js';
-import AddNewLab from './AddNewLab';
-import {discipline_uri, host} from '../Utils/utils';
+import {discipline_uri} from '../Utils/utils';
 import {InfoModal} from './InfoModal';
 import AddNewDiscipline from "./AddNewDiscipline";
 

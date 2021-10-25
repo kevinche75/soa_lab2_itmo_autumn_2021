@@ -10,33 +10,25 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Entity
-@XmlRootElement
 public class Location {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @XmlElement
-    private long id;
+    private Long id;
 
-    @XmlElement
     private float x;
 
     @NotNull
-    @XmlElement
     private Integer y; //Поле не может быть null
 
-    @XmlElement
     private int z;
 
     @NotBlank
-    @XmlElement
     private String name; //Строка не может быть пустой, Поле не может быть null
 
     public void update(Location locationUpdate){
@@ -44,5 +36,15 @@ public class Location {
         this.y = locationUpdate.getY();
         this.z = locationUpdate.getZ();
         this.name = locationUpdate.getName();
+    }
+
+    public ru.itmo.stringEntity.Location toUnrealLocation(){
+        return new ru.itmo.stringEntity.Location(
+                Long.toString(id),
+                Float.toString(x),
+                y.toString(),
+                Integer.toString(z),
+                name
+        );
     }
 }

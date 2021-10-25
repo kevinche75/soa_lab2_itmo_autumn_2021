@@ -3,6 +3,7 @@ package ru.itmo.stringEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import ru.itmo.converter.FieldConverter;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -21,4 +22,12 @@ public class Coordinates {
 
     @XmlElement
     private String y;
+
+    public ru.itmo.entity.Coordinates toRealCoordinates(){
+        return new ru.itmo.entity.Coordinates(
+                FieldConverter.longConvert(id),
+                FieldConverter.intConvert(x),
+                FieldConverter.doubleConvert(y)
+        );
+    }
 }
