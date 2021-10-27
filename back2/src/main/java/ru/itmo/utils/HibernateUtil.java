@@ -14,10 +14,7 @@ public class HibernateUtil {
         try {
             Configuration configuration = new Configuration();
             configuration.addAnnotatedClass(LabWork.class);
-            configuration.addAnnotatedClass(Coordinates.class);
             configuration.addAnnotatedClass(Difficulty.class);
-            configuration.addAnnotatedClass(Location.class);
-            configuration.addAnnotatedClass(Person.class);
             configuration.addAnnotatedClass(Discipline.class);
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                     .applySettings(configuration.getProperties()).build();

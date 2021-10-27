@@ -117,4 +117,11 @@ public class LabWorkServlet {
     public Response deleteLabWork(@PathParam("id") String id){
         return service.deleteLabWork(id);
     }
+
+    @OPTIONS
+    @Path("{path : .*}")
+    public Response options() {
+        return Response.ok()
+                .build();
+    }
 }

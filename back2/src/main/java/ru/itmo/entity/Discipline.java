@@ -9,6 +9,16 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@NamedQueries({
+        @NamedQuery(
+                name = "getLabWorkDiscipline",
+                query = "select d " +
+                        "from Discipline d " +
+                        "join LabWork l " +
+                        "where l.id = :labWorkId "
+        )
+})
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -23,7 +33,12 @@ public class Discipline {
     private String name;
 
     @Setter
-    @OneToMany(mappedBy = "discipline", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinTable(
+            name="discipline_labWorks",
+            joinColumns = @JoinColumn( name="discipline_id"),
+            inverseJoinColumns = @JoinColumn( name="labWork_id")
+    )
     private List<LabWork> labWorks = new ArrayList<>();
 
     public ru.itmo.stringEntity.Discipline toUnrealDiscipline(){

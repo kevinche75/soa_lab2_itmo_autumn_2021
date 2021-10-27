@@ -11,6 +11,7 @@ import {
   Route,
   Link
 } from "react-router-dom";
+import DisciplineLabWorksTable from "./Components/DisciplineLabWorksTable";
 
 function App() {
   return (
@@ -18,6 +19,9 @@ function App() {
       <Router>
         <Header />
         <Switch>
+          <Route path="/discipline/:id">
+            <DisciplineLabWorksTable/>
+          </Route>
           <Route path="/discipline">
             <DisciplineTable />
           </Route>

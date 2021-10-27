@@ -28,14 +28,4 @@ public class Location {
 
     @XmlElement
     private String name; //Строка не может быть пустой, Поле не может быть null
-
-    public ru.itmo.entity.Location toRealLocation(){
-        return new ru.itmo.entity.Location(
-                FieldConverter.longConvert(id),
-                FieldConverter.floatConvert(x),
-                FieldConverter.intConvert(y),
-                FieldConverter.intConvert(z),
-                name
-        );
-    }
 }

@@ -22,12 +22,4 @@ public class Coordinates {
 
     @XmlElement
     private String y;
-
-    public ru.itmo.entity.Coordinates toRealCoordinates(){
-        return new ru.itmo.entity.Coordinates(
-                FieldConverter.longConvert(id),
-                FieldConverter.intConvert(x),
-                FieldConverter.doubleConvert(y)
-        );
-    }
 }

@@ -3,7 +3,6 @@ package ru.itmo.stringEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import ru.itmo.converter.FieldConverter;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -11,18 +10,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@XmlRootElement
-public class Person {
+@XmlRootElement(name = "labWork")
+public class ShortLabWork {
 
     @XmlElement
-    private String id;
+    private String id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
 
     @XmlElement
     private String name; //Поле не может быть null, Строка не может быть пустой
-
-    @XmlElement
-    private String weight; //Поле может быть null, Значение поля должно быть больше 0
-
-    @XmlElement
-    private Location location; //Поле не может быть null
 }

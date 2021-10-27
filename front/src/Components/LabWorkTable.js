@@ -18,13 +18,14 @@ import {
   constructSortField,
   constructUpdateObject,
   defaultSorted,
-  host,
-  options,
-  sizePerPageRenderer
+  first_host,
+  options, second_host,
+  sizePerPageRenderer, third_host
 } from '../Utils/utils';
 import SpecialFuncs from './SpecialFuncs';
 import {InfoModal} from './InfoModal';
 import LabModal from './LabModal';
+import {Button, Dropdown, DropdownButton, FormControl, InputGroup} from "react-bootstrap";
 
 const LabWorkTable = () => {
 
@@ -37,6 +38,8 @@ const LabWorkTable = () => {
   const [firstQuery, setFirstQuery] = useState(false)
   const [showError, setShowError] = useState(false)
   const [message, setMessage] = useState("")
+  const [steps, setSteps] = useState(0)
+  const [disciplines, setDisciplines] = useState([]);
   const [lab, setLab] = useState({
     name: "",
     creationDate: "",
@@ -94,9 +97,25 @@ const LabWorkTable = () => {
     setShowError(true)
   }
 
+  const baseCatch = async (error) => {
+    if (error.response) {
+      // Request made and server responded
+      if (error.response.data)
+        catchInfo(error.response.data)
+      else
+        catchError()
+    } else if (error.request) {
+      // The request was made but no response was received
+      catchError()
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      catchError()
+    }
+  }
+
   const getLabsData = async () => {
     const params = constructQueryParams(filterFields, activeSizePerPage, activePage, activeSortField);
-    const host_path = !lessMaximalPointFlag ? host : `${host}/less_maximum_point/${filterFields.maximumPoint}`
+    const host_path = !lessMaximalPointFlag ? first_host : `${first_host}/less_maximum_point/${filterFields.maximumPoint}`
     return axios.get(
       host_path,
       { params }).then(data => {
@@ -116,96 +135,70 @@ const LabWorkTable = () => {
         })
       })
       .catch(function (error) {
-        if (error.response) {
-          // Request made and server responded
-          if (error.response.data)
-            catchInfo(error.response.data)
-          else
-            catchError()
-        } else if (error.request) {
-          // The request was made but no response was received
-          catchError()
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          catchError()
+        baseCatch(error)
+      })
+  }
+
+  const getDisciplineData = async () => {
+    axios.get(
+        second_host
+    ).then (data => {
+      parseString(data.data, { explicitArray: false, ignoreAttrs: true }, function (err, result) {
+        switch (parseInt(result.disciplines_result.totalDisciplines)) {
+          case 0:
+            setDisciplines([]);
+            break;
+          case 1:
+            setDisciplines([result.disciplines_result.disciplines.discipline]);
+            break;
+          default:
+            setDisciplines(result.disciplines_result.disciplines.discipline)
+            break;
         }
       })
+    })
+        .catch(function (error) {
+          baseCatch(error)
+        })
   }
 
   const createNewLab = async (object) => {
     let xmlObject = xmlBuilder.buildObject(object);
     axios.post(
-      host, xmlObject, {headers: {'Content-Type': 'application/xml'}}
+      first_host, xmlObject, {headers: {'Content-Type': 'application/xml'}}
     ).then(data => {
       getLabsData();
     }).catch(function (error) {
-      if (error.response) {
-        // Request made and server responded
-        if (error.response.data)
-          catchInfo(error.response.data)
-        else
-          catchError()
-      } else if (error.request) {
-        // The request was made but no response was received
-        catchError()
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        catchError()
-      }
+      baseCatch(error)
     })
   }
 
   const updateNewLab = async (object) => {
     let xmlObject = xmlBuilder.buildObject(object);
     axios.put(
-      `${host}/${object.labWork.id}`, xmlObject, {headers: {'Content-Type': 'application/xml'}}
+      `${first_host}/${object.labWork.id}`, xmlObject, {headers: {'Content-Type': 'application/xml'}}
     ).then(data => {
       getLabsData();
     })
       .catch(function (error) {
-        if (error.response) {
-          // Request made and server responded
-          if (error.response.data)
-            catchInfo(error.response.data)
-          else
-            catchError()
-        } else if (error.request) {
-          // The request was made but no response was received
-          catchError()
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          catchError()
-        }
+        baseCatch(error)
       })
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     axios.delete(
-      `${host}/${id}`, { crossdomain: true }
+      `${first_host}/${id}`
     ).then(data => {
-      console.log(data);
       getLabsData();
     })
       .catch(function (error) {
-        if (error.response) {
-          // Request made and server responded
-          if (error.response.data)
-            catchInfo(error.response.data)
-          else
-            catchError()
-        } else if (error.request) {
-          // The request was made but no response was received
-          catchError()
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          catchError()
-        }
+        baseCatch(error)
       })
   }
 
   const searchLab = async (id) => {
     axios.get(
-      `${host}/${id}`
+      `${first_host}/${id}`
     )
       .then(data => {
         parseString(data.data, { explicitArray: false, ignoreAttrs: true }, function (err, result) {
@@ -217,26 +210,13 @@ const LabWorkTable = () => {
         })
       })
       .catch(function (error) {
-        if (error.response) {
-          // Request made and server responded
-          if (error.response.data)
-            catchInfo(error.response.data)
-          else
-            catchError()
-        } else if (error.request) {
-          // The request was made but no response was received
-          catchError()
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          catchError()
-        }
+        baseCatch(error)
       })
   }
 
   const serchLabWithMinName = async () => {
-    console.log("test")
     axios.get(
-      `${host}/min_name`
+      `${first_host}/min_name`
     )
       .then(data => {
         parseString(data.data, { explicitArray: false, ignoreAttrs: true }, function (err, result) {
@@ -245,48 +225,60 @@ const LabWorkTable = () => {
             ...result.labWork
           })
           setShowLab(true)
-          console.log(result)
         })
       })
       .catch(function (error) {
-        if (error.response) {
-          // Request made and server responded
-          if (error.response.data)
-            catchInfo(error.response.data)
-          else
-            catchError()
-        } else if (error.request) {
-          // The request was made but no response was received
-          catchError()
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          catchError()
-        }
+        baseCatch(error)
       })
   }
 
   const countPQM = async (pqm) => {
     axios.get(
-      `${host}/count_personal_maximum/${pqm}`
+      `${first_host}/count_personal_maximum/${pqm}`
     )
       .then(data => {
         catchInfo(data.data)
       })
       .catch(function (error) {
-        if (error.response) {
-          // Request made and server responded
-          if (error.response.data)
-            catchInfo(error.response.data)
-          else
-            catchError()
-        } else if (error.request) {
-          // The request was made but no response was received
-          catchError()
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          catchError()
-        }
+        baseCatch(error)
       })
+  }
+
+  const addLabWorkToDiscipline = async (disciplineId, labWorkId) => {
+    axios.post(
+        `${second_host}/${disciplineId}/${labWorkId}`
+    )
+        .then(data => {
+          catchInfo(data.data)
+        })
+        .catch(function (error) {
+          baseCatch(error)
+        })
+  }
+
+  const increaseDifficulty = async (labWorkId) => {
+    console.log(steps)
+    // axios.put(
+    //     `${third_host}/${labWorkId}/difficulty/increase/${steps}`
+    // )
+    //     .then(data => {
+    //       catchInfo(data.data)
+    //     })
+    //     .catch(function (error) {
+    //       baseCatch(error)
+    //     })
+  }
+
+  const handleIncrease = (e) => {
+    setSteps(e.target.value)
+  }
+
+  useEffect(() => {
+    console.log(steps)
+  }, [steps])
+
+  const handleSelect = (disciplineId, labWorkId) => {
+    addLabWorkToDiscipline(disciplineId, labWorkId)
   }
 
   const handleFilter = async () => {
@@ -294,7 +286,10 @@ const LabWorkTable = () => {
   }
 
   useEffect(() => {
-    if (firstQuery) getLabsData();
+    if (firstQuery) {
+      getLabsData();
+      getDisciplineData();
+    }
   }, [activeSortField, activePage, activeSizePerPage]);
 
   const handleTableChange = (type, { page, sizePerPage, filters, sortField, sortOrder, cellEdit }) => {
@@ -427,6 +422,27 @@ const LabWorkTable = () => {
       }),
       sort: true, sortCaret: sortCaretSpan
     },
+    {
+      dataField: "Increase Difficulty",
+      text: "Increase Difficulty",
+      editable: (cell, row, rowIndex, colIndex) => {
+        return false;
+      },
+      formatter: (cellContent, row) => {
+        return (
+            <InputGroup className="mb-3">
+              <InputGroup.Prepend>
+                <Button variant="outline-secondary" onClick={() => increaseDifficulty(row.id)}>+</Button>
+              </InputGroup.Prepend>
+              <FormControl 
+                  aria-describedby="basic-addon1"
+                  onChange={handleIncrease}
+                  type="number"
+              />
+            </InputGroup>
+        );
+      },
+    },
     { dataField: "author.name", text: "authorName", filter: textFilter(), sort: true },
     {
       dataField: "author.weight", text: "authorWeight", filter: numberFilter({
@@ -460,6 +476,9 @@ const LabWorkTable = () => {
     {
       dataField: "remove",
       text: "Delete",
+      editable: (cell, row, rowIndex, colIndex) => {
+        return false;
+      },
       formatter: (cellContent, row) => {
         return (
           <button
@@ -468,6 +487,29 @@ const LabWorkTable = () => {
           >
             Delete
           </button>
+        );
+      },
+    },
+    {
+      dataField: "add to discipline",
+      text: "Add to Discipline",
+      editable: (cell, row, rowIndex, colIndex) => {
+        return false;
+      },
+      formatter: (cellContent, row) => {
+        return (
+            <Dropdown>
+              <DropdownButton
+                  variant="success"
+                  id="dropdown-basic"
+                  onSelect={(e) => handleSelect(e, row.id)}
+                  title="Add to Discipline"
+              >
+                {disciplines.map(item => {
+                  return (<Dropdown.Item eventKey={item.id}>{item.name}</Dropdown.Item>);
+                })}
+              </DropdownButton>
+            </Dropdown>
         );
       },
     },

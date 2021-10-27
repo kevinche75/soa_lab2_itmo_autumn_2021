@@ -25,8 +25,10 @@ export const sizePerPageRenderer = ({
   </div>
 );
 
-export const host = "api/labworks"
-export const discipline_uri = "api/disciplines"
+export const first_host = "http://localhost:50432/lab2/api/labworks"
+export const second_host = "http://localhost:8080/lab2/bars/disciplines"
+export const third_host = "http://localhost:8080/lab2/bars/labworks"
+
 
 export const options = {
   'VERY_EASY': 'VERY_EASY',

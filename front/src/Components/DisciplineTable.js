@@ -2,9 +2,10 @@ import React, {useEffect, useState} from 'react';
 import BootstrapTable from 'react-bootstrap-table-next';
 import axios from 'axios';
 import {Builder, parseString} from 'xml2js';
-import {discipline_uri} from '../Utils/utils';
+import {second_host} from '../Utils/utils';
 import {InfoModal} from './InfoModal';
 import AddNewDiscipline from "./AddNewDiscipline";
+import { useHistory } from "react-router-dom";
 
 function DisciplineTable() {
 
@@ -12,12 +13,19 @@ function DisciplineTable() {
     const [disciplines, setDisciplines] = useState([]);
     const [showError, setShowError] = useState(false)
     const [message, setMessage] = useState("")
+    const history = useHistory();
 
 
     const columns = [
         { dataField: "id", text: "id" },
         { dataField: "name", text: "name" },
     ]
+
+    const rowEvents = {
+        onClick: (e, row, rowIndex) => {
+            history.push(`discipline/${row.id}`);
+        }
+    };
 
     const catchInfo = (data) => {
         parseString(data, { explicitArray: false, ignoreAttrs: true }, function (err, result) {
@@ -38,7 +46,7 @@ function DisciplineTable() {
     const createNewDiscipline = async (object) => {
         let xmlObject = xmlBuilder.buildObject(object);
         axios.post(
-            discipline_uri, xmlObject, {headers: {'Content-Type': 'application/xml'}}
+            second_host, xmlObject, {headers: {'Content-Type': 'application/xml'}}
         ).then(data => {
             getDisciplineData();
         }).catch(function (error) {
@@ -61,7 +69,7 @@ function DisciplineTable() {
 
     const getDisciplineData = async () => {
         axios.get(
-            discipline_uri
+            second_host
         ).then (data => {
             parseString(data.data, { explicitArray: false, ignoreAttrs: true }, function (err, result) {
                 switch (parseInt(result.disciplines_result.totalDisciplines)) {
@@ -110,6 +118,7 @@ function DisciplineTable() {
                     data={disciplines}
                     columns={columns}
                     rowStyle={{ whiteSpace: 'nowrap', wordWrap: 'break-word' }}
+                    rowEvents={ rowEvents }
                 />
             </div>
 
