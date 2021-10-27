@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -43,6 +44,7 @@ public class LabWork {
     @XmlElement
     private Discipline discipline;
 
+    @XmlTransient
     public void setDifficulty(String difficulty) {
         this.difficulty = difficulty;
     }

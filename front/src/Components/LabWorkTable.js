@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import BootstrapTable from 'react-bootstrap-table-next';
 import cellEditFactory, {Type} from 'react-bootstrap-table2-editor';
 import filterFactory, {
@@ -38,7 +38,6 @@ const LabWorkTable = () => {
   const [firstQuery, setFirstQuery] = useState(false)
   const [showError, setShowError] = useState(false)
   const [message, setMessage] = useState("")
-  const [steps, setSteps] = useState(0)
   const [disciplines, setDisciplines] = useState([]);
   const [lab, setLab] = useState({
     name: "",
@@ -256,26 +255,18 @@ const LabWorkTable = () => {
         })
   }
 
-  const increaseDifficulty = async (labWorkId) => {
-    console.log(steps)
-    // axios.put(
-    //     `${third_host}/${labWorkId}/difficulty/increase/${steps}`
-    // )
-    //     .then(data => {
-    //       catchInfo(data.data)
-    //     })
-    //     .catch(function (error) {
-    //       baseCatch(error)
-    //     })
+  const increaseDifficulty = async (steps, labWorkId) => {
+    axios.put(
+        `${third_host}/${labWorkId}/difficulty/increase/${steps}`
+    )
+        .then(data => {
+          catchInfo(data.data)
+          getLabsData()
+        })
+        .catch(function (error) {
+          baseCatch(error)
+        })
   }
-
-  const handleIncrease = (e) => {
-    setSteps(e.target.value)
-  }
-
-  useEffect(() => {
-    console.log(steps)
-  }, [steps])
 
   const handleSelect = (disciplineId, labWorkId) => {
     addLabWorkToDiscipline(disciplineId, labWorkId)
@@ -430,16 +421,19 @@ const LabWorkTable = () => {
       },
       formatter: (cellContent, row) => {
         return (
-            <InputGroup className="mb-3">
-              <InputGroup.Prepend>
-                <Button variant="outline-secondary" onClick={() => increaseDifficulty(row.id)}>+</Button>
-              </InputGroup.Prepend>
-              <FormControl 
-                  aria-describedby="basic-addon1"
-                  onChange={handleIncrease}
-                  type="number"
-              />
-            </InputGroup>
+            <Dropdown>
+              <DropdownButton
+                  variant="secondary"
+                  id="dropdown-basic"
+                  onSelect={(e) => increaseDifficulty(e, row.id)}
+                  title="Increase Difficulty"
+              >
+                <Dropdown.Item eventKey={1}>1</Dropdown.Item>
+                <Dropdown.Item eventKey={2}>2</Dropdown.Item>
+                <Dropdown.Item eventKey={3}>3</Dropdown.Item>
+                <Dropdown.Item eventKey={4}>4</Dropdown.Item>
+              </DropdownButton>
+            </Dropdown>
         );
       },
     },

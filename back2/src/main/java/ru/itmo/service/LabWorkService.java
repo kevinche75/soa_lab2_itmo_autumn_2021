@@ -11,6 +11,7 @@ import ru.itmo.validator.ValidatorResult;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,29 +35,34 @@ public class LabWorkService {
         return Response.status(code).entity(xmlConverter.toStr(serverResponse)).build();
     }
 
-    public Response increaseLabWorkDifficulty(String id, String stringSteps){
-        ValidatorResult validatorResult = new ValidatorResult();
-        FieldConverter.longConvert(id, "Discipline Id", validatorResult);
-        Integer steps = FieldConverter.intConvert(stringSteps, "Steps", validatorResult);
-        if (!validatorResult.isStatus()) {
-            return getInfo(400, validatorResult.getMessage());
-        }
-        Response labWorkResponse = dao.getTarget().path(id).request().accept(MediaType.APPLICATION_XML).get();
-        if (labWorkResponse.getStatus() != 200){
-            ServerResponse serverResponse = labWorkResponse.readEntity(ServerResponse.class);
-            return getInfo(labWorkResponse.getStatus(), serverResponse.getMessage());
-        }
-        LabWork labWork = labWorkResponse.readEntity(LabWork.class);
-        int difficulty = Difficulty.valueOf(labWork.getDifficulty()).ordinal();
-        int resultDifficulty = difficulty + steps;
-        if (!difficultyMap.containsKey(resultDifficulty)){
-            return getInfo(400, "Increased Difficulty out of bounds");
-        }
-        labWork.setDifficulty(difficultyMap.get(resultDifficulty));
-        Response changeDifficultyResponse = dao.getTarget().path(id).request().accept(MediaType.APPLICATION_XML).put(Entity.entity(labWork, MediaType.APPLICATION_XML));
-        if (changeDifficultyResponse.getStatus() != 200){
-            ServerResponse serverResponse = changeDifficultyResponse.readEntity(ServerResponse.class);
-            return getInfo(changeDifficultyResponse.getStatus(), serverResponse.getMessage());
+    public Response increaseLabWorkDifficulty(String id, String stringSteps) {
+        try {
+            ValidatorResult validatorResult = new ValidatorResult();
+            FieldConverter.longConvert(id, "Discipline Id", validatorResult);
+            Integer steps = FieldConverter.intConvert(stringSteps, "Steps", validatorResult);
+            if (!validatorResult.isStatus()) {
+                return getInfo(400, validatorResult.getMessage());
+            }
+            Response labWorkResponse = dao.getTarget().path(id).request().accept(MediaType.APPLICATION_XML).get();
+            if (labWorkResponse.getStatus() != 200){
+                ServerResponse serverResponse = labWorkResponse.readEntity(ServerResponse.class);
+                return getInfo(labWorkResponse.getStatus(), serverResponse.getMessage());
+            }
+            String strLab = labWorkResponse.readEntity(String.class);
+            LabWork labWork = xmlConverter.fromStr(strLab, LabWork.class);
+            int difficulty = Difficulty.valueOf(labWork.getDifficulty()).ordinal();
+            int resultDifficulty = difficulty + steps;
+            if (!difficultyMap.containsKey(resultDifficulty)){
+                return getInfo(400, "Increased Difficulty out of bounds");
+            }
+            labWork.setDifficulty(difficultyMap.get(resultDifficulty));
+            Response changeDifficultyResponse = dao.getTarget().path(id).request().accept(MediaType.APPLICATION_XML).put(Entity.entity(labWork, MediaType.APPLICATION_XML));
+            if (changeDifficultyResponse.getStatus() != 200){
+                ServerResponse serverResponse = changeDifficultyResponse.readEntity(ServerResponse.class);
+                return getInfo(changeDifficultyResponse.getStatus(), serverResponse.getMessage());
+            }
+        } catch (Exception e){
+            return getInfo(500, "Server error, try again");
         }
         return getInfo(200, "Success");
     }

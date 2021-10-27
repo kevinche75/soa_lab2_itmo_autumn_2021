@@ -50,7 +50,7 @@ public class LabWorksService {
         try {
             Optional<LabWork> labWork = dao.getLabWork(id);
             if (labWork.isPresent()) {
-                return Response.ok(xmlConverter.toStr(labWork)).build();
+                return Response.ok(xmlConverter.toStr(labWork.get())).build();
             } else {
                 return getInfo(404, "No labWork with such id: " + id);
             }
