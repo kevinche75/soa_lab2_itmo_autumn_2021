@@ -1,5 +1,6 @@
 package ru.itmo.DAO;
 
+import org.glassfish.jersey.SslConfigurator;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import ru.itmo.entity.Discipline;
@@ -8,7 +9,12 @@ import ru.itmo.utils.DisciplineResult;
 import ru.itmo.utils.HibernateUtil;
 import ru.itmo.utils.LabWorksResult;
 
-import javax.persistence.*;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.PersistenceException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -16,10 +22,8 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.UriBuilder;
-import java.io.FileInputStream;
 import java.math.BigInteger;
 import java.net.URI;
-import java.security.KeyStore;
 import java.util.List;
 import java.util.Optional;
 
@@ -179,18 +183,25 @@ public class DisciplineDAO {
 
     public WebTarget getTarget() {
         URI uri = UriBuilder.fromUri(backFirst).build();
-        Client client = ClientBuilder.newClient();
+        Client client = createClientBuilderSSL();
         return client.target(uri).path("api").path("labworks").queryParam(LIMIT_PARAM, Integer.MAX_VALUE);
     }
 
-    private void addSSLConfiguration(ClientBuilder clientBuilder) {
-        try {
-            KeyStore trustStore = KeyStore.getInstance("JKS");
-            FileInputStream fin = new FileInputStream("/Users/kevinche75/servers/certificates/payaratruststore.jks");
-            trustStore.load(fin, "soasoa".toCharArray());
-            clientBuilder.trustStore(trustStore);
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Cannot setup SSL for Jersey2 client", ex);
-        }
+    private Client createClientBuilderSSL() {
+        SSLContext sslContext = SslConfigurator.newInstance()
+                .keyPassword("soasoa")
+                .trustStorePassword("soasoa")
+                .createSSLContext();
+        HostnameVerifier hostnameVerifier = (hostname, sslSession) -> {
+            System.out.println(" hostname = " + hostname);
+            if (hostname.equals("localhost")) {
+                return true;
+            }
+            return false;
+        };
+        return ClientBuilder.newBuilder()
+                .sslContext(sslContext)
+                .hostnameVerifier(hostnameVerifier)
+                .build();
     }
 }
