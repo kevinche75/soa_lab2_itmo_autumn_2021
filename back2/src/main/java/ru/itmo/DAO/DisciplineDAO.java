@@ -8,10 +8,7 @@ import ru.itmo.utils.DisciplineResult;
 import ru.itmo.utils.HibernateUtil;
 import ru.itmo.utils.LabWorksResult;
 
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.PersistenceException;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -19,13 +16,16 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.UriBuilder;
+import java.io.FileInputStream;
+import java.math.BigInteger;
 import java.net.URI;
+import java.security.KeyStore;
 import java.util.List;
 import java.util.Optional;
 
 public class DisciplineDAO {
 
-    private static final String backFirst = "http://localhost:50432/lab2";
+    private static final String backFirst = "https://localhost:50432/lab2";
     private static final String LIMIT_PARAM = "limit";
 
     public DisciplineResult getAllDisciplines(){
@@ -114,14 +114,21 @@ public class DisciplineDAO {
             if (labWork == null) {
                 throw new EntityNotFoundException(String.format("LabWork with id %s wasn't found", labWorkId));
             }
-            Discipline labDiscipline = session.createNamedQuery("getLabWorkDiscipline", Discipline.class).setParameter("labWorkId", labWorkId).getSingleResult();
-            if (labDiscipline != null) {
+            Long disciplineId = null;
+            try {
+                TypedQuery<BigInteger> query = session.createSQLQuery("select discipline_id from discipline_labworks where labwork_id = :labWorkId");
+                query.setParameter("labWorkId", labWorkId).getSingleResult();
+                disciplineId = query.getSingleResult().longValue();
+            } catch (Exception ignored){
+            }
+            if (disciplineId != null) {
+                Discipline labDiscipline = session.find(Discipline.class, disciplineId);
                 throw new EntityExistsException(String.format("LabWork has already belonged to %s", labDiscipline.getName()));
             }
             discipline.getLabWorks().add(labWork);
             session.update(discipline);
             transaction.commit();
-        } catch (EntityExistsException e){
+        } catch (EntityExistsException | EntityNotFoundException e){
             throw e;
         } catch (Exception e){
             if (transaction != null) transaction.rollback();
@@ -141,7 +148,16 @@ public class DisciplineDAO {
             }
 
             if (labWork != null) {
-                Discipline discipline = session.createNamedQuery("getLabWorkDiscipline", Discipline.class).setParameter("labWorkId", labWorkId).getSingleResult();
+                Discipline discipline = null;
+                try {
+                    TypedQuery<BigInteger> query = session.createSQLQuery("select discipline_id from discipline_labworks where labwork_id = :labWorkId");
+                    query.setParameter("labWorkId", labWorkId).getSingleResult();
+                    Long disciplineId = query.getSingleResult().longValue();
+                    if (disciplineId != null) {
+                        discipline = session.find(Discipline.class, disciplineId);
+                    }
+                } catch (Exception ignored){
+                }
 
                 if (discipline != null && discipline.getId().equals(id)){
                     discipline.getLabWorks().remove(labWork);
@@ -165,5 +181,16 @@ public class DisciplineDAO {
         URI uri = UriBuilder.fromUri(backFirst).build();
         Client client = ClientBuilder.newClient();
         return client.target(uri).path("api").path("labworks").queryParam(LIMIT_PARAM, Integer.MAX_VALUE);
+    }
+
+    private void addSSLConfiguration(ClientBuilder clientBuilder) {
+        try {
+            KeyStore trustStore = KeyStore.getInstance("JKS");
+            FileInputStream fin = new FileInputStream("/Users/kevinche75/servers/certificates/payaratruststore.jks");
+            trustStore.load(fin, "soasoa".toCharArray());
+            clientBuilder.trustStore(trustStore);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Cannot setup SSL for Jersey2 client", ex);
+        }
     }
 }

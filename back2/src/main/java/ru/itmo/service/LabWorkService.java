@@ -11,7 +11,6 @@ import ru.itmo.validator.ValidatorResult;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,6 +61,7 @@ public class LabWorkService {
                 return getInfo(changeDifficultyResponse.getStatus(), serverResponse.getMessage());
             }
         } catch (Exception e){
+            e.printStackTrace();
             return getInfo(500, "Server error, try again");
         }
         return getInfo(200, "Success");

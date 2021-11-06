@@ -15,7 +15,7 @@ import java.util.List;
                 query = "select d " +
                         "from Discipline d " +
                         "join LabWork l " +
-                        "where l.id = :labWorkId "
+                        "where l.id = :labId "
         )
 })
 
@@ -33,7 +33,7 @@ public class Discipline {
     private String name;
 
     @Setter
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = false)
     @JoinTable(
             name="discipline_labWorks",
             joinColumns = @JoinColumn( name="discipline_id"),

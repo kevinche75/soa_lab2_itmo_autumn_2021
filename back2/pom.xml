@@ -17,7 +17,7 @@
         <junit.version>5.7.1</junit.version>
         <jakarta.persistence-api.version>2.2.3</jakarta.persistence-api.version>
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
-        <hibernate-core.version>5.5.6.Final</hibernate-core.version>
+        <hibernate-core.version>5.6.0.Final</hibernate-core.version>
         <postgresql.version>42.2.23</postgresql.version>
         <frontend-dir>${project.basedir}/../front</frontend-dir>
         <lombok.version>1.18.20</lombok.version>

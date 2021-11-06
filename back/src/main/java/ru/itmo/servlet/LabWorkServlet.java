@@ -3,6 +3,7 @@ package ru.itmo.servlet;
 import ru.itmo.service.LabWorksService;
 import ru.itmo.utils.LabWorkParams;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
@@ -35,6 +36,8 @@ public class LabWorkServlet {
     private static final String LESS_MAXIMUM_POINT_FLAG = "less_maximum_point/{maximum_point}";
 
     private LabWorksService service;
+    @Context
+    ServletContext servletContext;
 
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.APPLICATION_XML)
