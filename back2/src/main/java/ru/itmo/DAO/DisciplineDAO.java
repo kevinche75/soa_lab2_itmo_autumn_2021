@@ -1,14 +1,17 @@
 package ru.itmo.DAO;
 
+import lombok.SneakyThrows;
 import org.glassfish.jersey.SslConfigurator;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import ru.itmo.entity.Discipline;
-import ru.itmo.entity.LabWork;
 import ru.itmo.utils.DisciplineResult;
 import ru.itmo.utils.HibernateUtil;
 import ru.itmo.utils.LabWorksResult;
+import ru.itmo.utils.ServerResponse;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.persistence.EntityExistsException;
@@ -21,6 +24,8 @@ import javax.persistence.criteria.Root;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.math.BigInteger;
 import java.net.URI;
@@ -29,8 +34,23 @@ import java.util.Optional;
 
 public class DisciplineDAO {
 
-    private static final String backFirst = "https://localhost:50432/lab2";
-    private static final String LIMIT_PARAM = "limit";
+    @SneakyThrows
+    public DisciplineDAO(){
+        Context env = (Context)new InitialContext().lookup("java:comp/env");
+        backFirst = (String)env.lookup("uri");
+        hostname = (String)env.lookup("hostname");
+        trustPassword = (String)env.lookup("keyPassword");
+        keyPassword = (String)env.lookup("trustPassword");
+        api = (String)env.lookup("api");
+        labworks = (String)env.lookup("labworks");
+    }
+
+    private String backFirst;
+    private String hostname;
+    private String trustPassword;
+    private String keyPassword;
+    private String api;
+    private String labworks;
 
     public DisciplineResult getAllDisciplines(){
         List<Discipline> disciplines;
@@ -114,8 +134,9 @@ public class DisciplineDAO {
             if (discipline == null) {
                 throw new EntityNotFoundException(String.format("Discipline with id %s wasn't found", id));
             }
-            LabWork labWork = session.find(LabWork.class, labWorkId);
-            if (labWork == null) {
+            Response labWorkResponse = getTarget().path(labWorkId.toString()).request().accept(MediaType.APPLICATION_XML).get();
+            if (labWorkResponse.getStatus() != 200){
+                ServerResponse serverResponse = labWorkResponse.readEntity(ServerResponse.class);
                 throw new EntityNotFoundException(String.format("LabWork with id %s wasn't found", labWorkId));
             }
             Long disciplineId = null;
@@ -129,7 +150,7 @@ public class DisciplineDAO {
                 Discipline labDiscipline = session.find(Discipline.class, disciplineId);
                 throw new EntityExistsException(String.format("LabWork has already belonged to %s", labDiscipline.getName()));
             }
-            discipline.getLabWorks().add(labWork);
+            discipline.getLabWorks().add(labWorkId);
             session.update(discipline);
             transaction.commit();
         } catch (EntityExistsException | EntityNotFoundException e){
@@ -144,32 +165,32 @@ public class DisciplineDAO {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            LabWork labWork = session.find(LabWork.class, labWorkId);
+            Response labWorkResponse = getTarget().path(labWorkId.toString()).request().accept(MediaType.APPLICATION_XML).get();
+            if (labWorkResponse.getStatus() != 200){
+                ServerResponse serverResponse = labWorkResponse.readEntity(ServerResponse.class);
+                throw new EntityNotFoundException(String.format("LabWork with id %s wasn't found", labWorkId));
+            }
             Discipline searchDiscipline = session.find(Discipline.class, id);
 
             if (searchDiscipline == null){
                 throw new EntityNotFoundException(String.format("Discipline with id %s wasn't found", id));
             }
 
-            if (labWork != null) {
-                Discipline discipline = null;
-                try {
-                    TypedQuery<BigInteger> query = session.createSQLQuery("select discipline_id from discipline_labworks where labwork_id = :labWorkId");
-                    query.setParameter("labWorkId", labWorkId).getSingleResult();
-                    Long disciplineId = query.getSingleResult().longValue();
-                    if (disciplineId != null) {
-                        discipline = session.find(Discipline.class, disciplineId);
-                    }
-                } catch (Exception ignored){
+            Discipline discipline = null;
+            try {
+                TypedQuery<BigInteger> query = session.createSQLQuery("select discipline_id from discipline_labworks where labwork_id = :labWorkId");
+                query.setParameter("labWorkId", labWorkId).getSingleResult();
+                Long disciplineId = query.getSingleResult().longValue();
+                if (disciplineId != null) {
+                    discipline = session.find(Discipline.class, disciplineId);
                 }
+            } catch (Exception ignored){
+            }
 
-                if (discipline != null && discipline.getId().equals(id)){
-                    discipline.getLabWorks().remove(labWork);
-                } else {
-                    throw new EntityNotFoundException(String.format("Discipline %s has no labWork with id %s", searchDiscipline.getName(), labWorkId));
-                }
+            if (discipline != null && discipline.getId().equals(id)){
+                discipline.getLabWorks().remove(labWorkId);
             } else {
-                throw new EntityNotFoundException(String.format("LabWork with id %s wasn't found", labWorkId));
+                throw new EntityNotFoundException(String.format("Discipline %s has no labWork with id %s", searchDiscipline.getName(), labWorkId));
             }
             transaction.commit();
         } catch (Exception e) {
@@ -184,17 +205,17 @@ public class DisciplineDAO {
     public WebTarget getTarget() {
         URI uri = UriBuilder.fromUri(backFirst).build();
         Client client = createClientBuilderSSL();
-        return client.target(uri).path("api").path("labworks").queryParam(LIMIT_PARAM, Integer.MAX_VALUE);
+        return client.target(uri).path(api).path(labworks);
     }
 
     private Client createClientBuilderSSL() {
         SSLContext sslContext = SslConfigurator.newInstance()
-                .keyPassword("soasoa")
-                .trustStorePassword("soasoa")
+                .keyPassword(keyPassword)
+                .trustStorePassword(trustPassword)
                 .createSSLContext();
         HostnameVerifier hostnameVerifier = (hostname, sslSession) -> {
             System.out.println(" hostname = " + hostname);
-            if (hostname.equals("localhost")) {
+            if (hostname.equals(this.hostname)) {
                 return true;
             }
             return false;

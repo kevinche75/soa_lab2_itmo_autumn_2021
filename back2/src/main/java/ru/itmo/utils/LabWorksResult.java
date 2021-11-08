@@ -1,6 +1,5 @@
 package ru.itmo.utils;
 
-import ru.itmo.stringEntity.LabWork;
 import ru.itmo.stringEntity.ShortLabWork;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -23,11 +22,11 @@ public class LabWorksResult {
         this.list = new ArrayList<>();
     }
 
-    public LabWorksResult(long totalLabWorks, List<ru.itmo.entity.LabWork> labWorks){
+    public LabWorksResult(long totalLabWorks, List<Long> labWorks){
         this.totalLabWorks = totalLabWorks;
         this.list = labWorks
                 .stream()
-                .map(ru.itmo.entity.LabWork::toShortLabWork)
+                .map(i -> new ShortLabWork(i.toString()))
                 .collect(Collectors.toList());
     }
 }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>My Secure Stuff</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+    <env-entry>
+        <env-entry-name>uri</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>https://localhost:50432/lab2</env-entry-value>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>hostname</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>localhost</env-entry-value>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>keyPassword</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>soasoa</env-entry-value>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>trustPassword</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>soasoa</env-entry-value>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>api</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>api</env-entry-value>
+    </env-entry>
+    <env-entry>
+        <env-entry-name>labworks</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>labworks</env-entry-value>
+    </env-entry>
+</web-app>

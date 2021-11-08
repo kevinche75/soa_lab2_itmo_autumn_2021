@@ -13,7 +13,6 @@ public class HibernateUtil {
     private static SessionFactory buildSessionFactory() throws ExceptionInInitializerError{
         try {
             Configuration configuration = new Configuration();
-            configuration.addAnnotatedClass(LabWork.class);
             configuration.addAnnotatedClass(Difficulty.class);
             configuration.addAnnotatedClass(Discipline.class);
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
